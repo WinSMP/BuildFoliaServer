@@ -1,17 +1,19 @@
 #!/usr/bin/env /bin/bash
 
 TEMP_FILE=$(mktemp -d)
-build_pkgs = ('jdk21-openjdk' 'git')
+build_pkgs=('jdk21-openjdk' 'git')
+
+pacman -Sy
 
 install_deps() {
 	for pkg in ${build_pkgs[@]}; do
-		pacman -Sy --noconfirm $pkg
+		pacman -S --noconfirm $pkg
 	done
 }
 
 set_git_creds() {
-	git config --global user.name 'winlogon'
-	git config --global user.email 'winlogon@winlogon.org'
+	git config --global user.name 'github-actions'
+	git config --global user.email 'actions@github.com'
 }
 
 clone_cd_repo() {
@@ -24,5 +26,5 @@ install_deps
 clone_cd_repo
 set_git_creds
 
-./gradlew applyPatches
+./gradlew applyAllPatches
 ./gradlew createMojmapBundlerJar

@@ -1,0 +1,46 @@
+name: Build Folia
+
+on:
+  schedule:
+    - cron: '0 3 * * 2'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Clone Folia repository
+        run: git clone https://github.com/PaperMC/Folia.git
+
+      - name: Configure Git user
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions"
+
+      - name: Build project
+        working-directory: Folia
+        env:
+          GRADLE_OPTS: "-Xmx1g -Xms512m -Dorg.gradle.parallel=false"
+        run: |
+          # apply patches to paper/minecraft code
+          ./gradlew --no-daemon --max-workers=1 applyAllPatches --info
+          # build the decompiled + paper code into a bundled jar
+          ./gradlew --no-daemon --max-workers=1 createMojmapBundlerJar --info
+
+      - name: List all JARs in build/libs (for debugging)
+        run: ls -1 Folia/folia-server/build/libs/*.jar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: folia-artifacts
+          path: Folia/folia-server/build/libs/folia-bundler-*mojmap.jar
+          if-no-files-found: error
+          retention-days: 30
