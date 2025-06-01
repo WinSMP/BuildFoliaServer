@@ -1,4 +1,7 @@
-name: Build Folia
+name: Build and Release Folia
+
+permissions:
+  contents: write
 
 on:
   schedule:
@@ -30,17 +33,42 @@ jobs:
           GRADLE_OPTS: "-Xmx1g -Xms512m -Dorg.gradle.parallel=false"
         run: |
           # apply patches to paper/minecraft code
-          ./gradlew --no-daemon --max-workers=1 applyAllPatches --info
+          ./gradlew applyAllPatches --info
           # build the decompiled + paper code into a bundled jar
-          ./gradlew --no-daemon --max-workers=1 createMojmapBundlerJar --info
+          ./gradlew createMojmapBundlerJar --info
 
       - name: List all JARs in build/libs (for debugging)
         run: ls -1 Folia/folia-server/build/libs/*.jar
 
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: folia-artifacts
           path: Folia/folia-server/build/libs/folia-bundler-*mojmap.jar
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: folia-artifacts
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Folia build at ${{ steps.date.outputs.date }}
+          tag_name: build-${{ github.run_id }}
+          files: folia-bundler-*-mojmap.jar
+          body: "Automated Folia build created on ${{ steps.date.outputs.date }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
