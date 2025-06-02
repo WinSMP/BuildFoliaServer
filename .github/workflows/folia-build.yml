@@ -29,8 +29,6 @@ jobs:
 
       - name: Build project
         working-directory: Folia
-        env:
-          GRADLE_OPTS: "-Xmx1g -Xms512m -Dorg.gradle.parallel=false"
         run: |
           # apply patches to paper/minecraft code
           ./gradlew applyAllPatches --info
