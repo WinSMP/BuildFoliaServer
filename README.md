@@ -1,6 +1,6 @@
 # BuildFoliaServer
 
-> Don't wanna compile Folia? Here you go: automated builds
+> Don't wanna compile Folia? Here you go: automated builds!
 
 This repo includes:
 - Bash script to compile Folia on an [Arch Linux](https://archlinux.org) install, preferably a Docker [container](https://hub.docker.com/_/archlinux).
